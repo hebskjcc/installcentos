@@ -30,3 +30,22 @@ $ export DISK="/dev/sda"
 ```
 curl https://raw.githubusercontent.com/gshipley/installcentos/master/install-openshift.sh | /bin/bash
 ```
+
+## Uninstallation
+
+To remove the OpenShift installation run as root:
+
+```
+curl https://raw.githubusercontent.com/gshipley/installcentos/master/wipe.sh | /bin/bash
+```
+
+
+## Development
+
+For development it's possible to switch the script repo
+
+```
+# Change location of source repository
+$ export SCRIPT_REPO="https://raw.githubusercontent.com/gshipley/installcentos/master"
+$ curl $SCRIPT_REPO/install-openshift.sh | /bin/bash
+```

@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+require 'yaml'
+
+config = YAML.load(File.read('openshift/config/master/master-config.yaml'))
+
+config['oauthConfig']['identityProviders'] = [{
+  'name' => 'htpasswd',
+  'challenge' => true,
+  'login' => true,
+  'mappingMethod' => 'add',
+  'provider' => {
+    'apiVersion' => 'v1',
+    'kind' => 'HTPasswdPasswordIdentityProvider',
+    'file' => 'users.htpasswd'
+  }
+}]
+
+File.open('openshift/config/master/master-config.yaml', 'w') do |file|
+ file.write(YAML.dump(config))
+end

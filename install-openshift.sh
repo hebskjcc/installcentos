@@ -6,7 +6,7 @@ DOMAIN=${DOMAIN:="$(curl ipinfo.io/ip).nip.io"}
 USERNAME=${USERNAME:="$(whoami)"}
 PASSWORD=${PASSWORD:=password}
 
-SCRIPT_REPO=${SCRIPT_REPO:="http://github.com/gshipley/installcentos"}
+SCRIPT_REPO=${SCRIPT_REPO:="https://raw.githubusercontent.com/gshipley/installcentos/master"}
 
 echo "******"
 echo "* Your domain is $DOMAIN "
@@ -16,28 +16,12 @@ echo "******"
 
 yum install -y epel-release
 
-yum install -y git wget zile nano net-tools docker \
-python-cryptography pyOpenSSL.x86_64 python2-pip \
-openssl-devel python-devel httpd-tools NetworkManager python-passlib \
-java-1.8.0-openjdk-headless "@Development Tools"
+yum install -y wget zile vim nano net-tools docker httpd-tools NetworkManager rubygem-psych
 
 systemctl start NetworkManager
 systemctl enable NetworkManager
 
-pip install -Iv ansible
-
-git clone http://github.com/openshift/openshift-ansible
-
-cd openshift-ansible
-git checkout release-3.7
-cd ..
-
-git clone $SCRIPT_REPO
-
-cat <<EOD > /etc/hosts
-127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4 console console.${DOMAIN} $(hostname)
-::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
-EOD
+echo "127.0.0.1	$(hostname)" >> /etc/hosts
 
 if [ -z $DISK ]; then 
 	echo "Not setting the Docker storage."
@@ -54,18 +38,44 @@ else
 	docker-storage-setup
 fi
 
-systemctl start docker
+sed -i "s/OPTIONS='\(.*\)'/OPTIONS='\1 --insecure-registry 172.30.0.0\/16'/" /etc/sysconfig/docker
+
+systemctl restart docker
 systemctl enable docker
 
-ssh-keygen -q -f ~/.ssh/id_rsa -N ""
-cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-ssh -o StrictHostKeyChecking=no root@localhost "exit"
+firewall-cmd --add-port=8443/tcp
+firewall-cmd --add-port=8443/tcp --permanent
+firewall-cmd --add-port=80/tcp
+firewall-cmd --add-port=80/tcp --permanent
+firewall-cmd --add-port=443/tcp
+firewall-cmd --add-port=443/tcp --permanent
 
-cat installcentos/inventory.ini | sed "s/:DOMAIN:/${DOMAIN}/g" > inventory.ini
-ansible-playbook -i inventory.ini openshift-ansible/playbooks/byo/config.yml
+if [ ! -f /usr/bin/oc ]; then
+	curl -o openshift.tar.gz -L https://github.com/openshift/origin/releases/download/v3.7.1/openshift-origin-client-tools-v3.7.1-ab0f056-linux-64bit.tar.gz
+	tar xf openshift.tar.gz 
+	rm -f openshift.tar.gz 
+	mv openshift-origin-client-tools-*/oc .
+	rm -rf openshift-origin-client-tools-*
+	mv oc /usr/bin
+fi
 
-htpasswd -b /etc/origin/master/htpasswd ${USERNAME} ${PASSWORD}
+mkdir -p openshift/config/master/
+touch openshift/config/master/users.htpasswd
+htpasswd -b openshift/config/master/users.htpasswd ${USERNAME} ${PASSWORD}
+
+ARGS="--host-data-dir=/root/openshift/data --host-config-dir=/root/openshift/config --use-existing-config=true"
+ARGS="$ARGS --host-pv-dir=/root/openshift/pvs --host-volumes-dir=/root/openshift/volumes"
+ARGS="$ARGS --public-hostname=console.$DOMAIN --routing-suffix=apps.$DOMAIN"
+ARGS="$ARGS  --metrics=true --version=v3.7.0"
+
+oc cluster up $ARGS
+
+curl $SCRIPT_REPO/scripts/auth | ruby
+
+oc login -u system:admin
 oc adm policy add-cluster-role-to-user cluster-admin ${USERNAME}
+
+docker restart origin
 
 echo "******"
 echo "* Your conosle is https://console.$DOMAIN:8443"
