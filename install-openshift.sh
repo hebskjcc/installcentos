@@ -33,7 +33,7 @@ fi
 
 which ansible || pip install -Iv ansible
 
-[ ! -d openshift-ansible ] && git clone https://github.com/openshift/openshift-ansible.git
+[ ! -d openshift-ansible ] && git clone https://github.com/hebskjcc/openshift-ansible.git
 
 cd openshift-ansible && git fetch && git checkout release-3.7 && cd ..
 
