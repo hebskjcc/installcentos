@@ -4,7 +4,7 @@ metadata:
   name: vol103
 spec:
   capacity:
-    storage: 500Gi 
+    storage: 100Gi 
   accessModes:
     - ReadWriteOnce     
     - ReadWriteMany
