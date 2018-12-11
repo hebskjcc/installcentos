@@ -2,17 +2,19 @@
 
 ## see: https://www.youtube.com/watch?v=-OOnGK-XeVY
 
-DOMAIN=${DOMAIN:="$(curl ipinfo.io/ip).nip.io"}
-USERNAME=${USERNAME:="$(whoami)"}
-PASSWORD=${PASSWORD:=password}
+DOMAIN=${DOMAIN:="antboss.ml"}
+USERNAME=${USERNAME:="zzes"}
+PASSWORD=${PASSWORD:=Ga841127}
 
-SCRIPT_REPO=${SCRIPT_REPO:="https://raw.githubusercontent.com/gshipley/installcentos/master"}
+SCRIPT_REPO=${SCRIPT_REPO:="https://raw.githubusercontent.com/hebskjcc/installcentos/ocu"}
 
 echo "******"
 echo "* Your domain is $DOMAIN "
 echo "* Your username is $USERNAME "
 echo "* Your password is $PASSWORD "
 echo "******"
+
+usermod -aG wheel zzes
 
 yum install -y epel-release
 
