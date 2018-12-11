@@ -53,7 +53,7 @@ firewall-cmd --add-port=443/tcp
 firewall-cmd --add-port=443/tcp --permanent
 
 if [ ! -f /usr/bin/oc ]; then
-	curl -o openshift.tar.gz -L https://github.com/openshift/origin/releases/download/v3.7.1/openshift-origin-client-tools-v3.7.1-ab0f056-linux-64bit.tar.gz
+	curl -o openshift.tar.gz -L https://github.com/openshift/origin/releases/download/v3.9.0/openshift-origin-client-tools-v3.9.0-191fece-linux-64bit.tar.gz
 	tar xf openshift.tar.gz 
 	rm -f openshift.tar.gz 
 	mv openshift-origin-client-tools-*/oc .
@@ -68,7 +68,7 @@ htpasswd -b openshift/config/master/users.htpasswd ${USERNAME} ${PASSWORD}
 ARGS="--host-data-dir=/root/openshift/data --host-config-dir=/root/openshift/config --use-existing-config=true"
 ARGS="$ARGS --host-pv-dir=/root/openshift/pvs --host-volumes-dir=/root/openshift/volumes"
 ARGS="$ARGS --public-hostname=console.$DOMAIN --routing-suffix=apps.$DOMAIN"
-ARGS="$ARGS  --metrics=true --version=v3.7.0"
+ARGS="$ARGS  --metrics=true --version=v3.9.0"
 
 oc cluster up $ARGS
 
